@@ -10,6 +10,9 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
     },
   },
+  build: {
+    outDir: "../server/public",
+  },
   server: {
     proxy: {
       "/api/v1": {
