@@ -1,22 +1,32 @@
-import express from "express";
-import { db } from "./database/prisma";
-import { apiRouter } from "./apis/router";
-import { Middleware } from "./middlewares";
-import type { Application } from "express";
+import morgan from 'morgan';
+import express from 'express';
+import httpErrors from 'http-errors';
+import cookieParser from 'cookie-parser';
+import { db } from './database/mongo.config';
+import { apiRouter } from './apis/api.router';
+import { errorLogger } from './middleware/error-logger';
+import { errorHandler } from './middleware/error-handler';
+import { validation } from './middleware/validation-error';
 
-export async function App(): Promise<Application> {
-  await db.$connect();
+export async function App(): Promise<express.Application> {
+  db.$connect();
   // create express application
-  const app: Application = express();
-  // static path
-  app.use(express.static("public"));
+  const app = express();
   // middlewares
-  Middleware.global(app);
-  Middleware.logger(app);
+  app.use(morgan('common'));
+  app.use(cookieParser());
+  app.use(express.json({ limit: '16kb' }));
+  app.use(express.urlencoded({ extended: true, limit: '16kb' }));
   // api router
-  app.use("/api/v1", apiRouter);
+  app.use('/api', apiRouter);
+  // Not found
+  app.all('*', (req) => {
+    throw new httpErrors.NotFound(`Cannot ${req.method} ${req.originalUrl}`);
+  });
   // errors handler middlewares
-  Middleware.errorhandler(app);
+  app.use(validation);
+  app.use(errorLogger);
+  app.use(errorHandler);
   // return app
   return app;
 }

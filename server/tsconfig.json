@@ -19,8 +19,8 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@api-v1/*": ["src/apis/v1/*"]
     }
-  },
-  "include": ["src"]
+  }
 }
