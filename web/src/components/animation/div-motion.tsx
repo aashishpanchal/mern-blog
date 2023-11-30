@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { AnimationProps } from "framer-motion";
@@ -6,11 +7,11 @@ interface Props extends React.PropsWithChildren, AnimationProps {
   className?: string;
 }
 
-const AnimationWrapper = ({
+export const DivMotion = ({
   children,
   initial = { opacity: 0 },
   animate = { opacity: 1 },
-  transition = { duration: 1 },
+  transition = { duration: 0.5 },
   ...props
 }: Props) => {
   return (
@@ -26,5 +27,3 @@ const AnimationWrapper = ({
     </AnimatePresence>
   );
 };
-
-export default AnimationWrapper;

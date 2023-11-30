@@ -1,7 +1,6 @@
 import { auth } from './middlewares';
 import { injectable } from 'tsyringe';
 import { BadRequest } from 'http-errors';
-import { Request, Response } from 'express';
 import { validate } from '@/utils/validate';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -9,6 +8,8 @@ import { config } from '@/config/config.service';
 import { EmailVerifyDto } from './dto/verify.dto';
 import { isEmail, isEmpty } from 'class-validator';
 import { ApiResponse, Delete, Middleware, Patch, Post } from '@/utils/common';
+// types
+import type { Request } from 'express';
 
 @injectable()
 export class AuthController {
@@ -16,27 +17,20 @@ export class AuthController {
 
   constructor(private readonly authService: AuthService) {}
 
-  @Post('login', 'signin')
+  @Post('login')
   @Middleware(auth.local)
-  async login(req: Request, res: Response) {
+  async login(req: Request) {
     const user = req.user;
     // generate tokens
     const tokens = await this.authService.getToken(user.id);
-    // set token in cookies
-    res
-      .cookie('refresh', tokens.refresh, {
-        maxAge: this.authService.refresh.exp,
-        httpOnly: this.isDev,
-      })
-      .cookie('access', tokens.access, {
-        maxAge: this.authService.access.exp,
-        httpOnly: this.isDev,
-      });
     // return response with user and tokens
-    return ApiResponse.success({ user, tokens }, 'User logged in successfully');
+    return ApiResponse.success(
+      { user: user.toJSON(), tokens },
+      'Logged successfully',
+    );
   }
 
-  @Post('register', 'signup')
+  @Post('register')
   async register(req: Request) {
     const createDto = await validate(RegisterDto, req.body);
     // signup user
@@ -52,16 +46,6 @@ export class AuthController {
   async verifyEmail(req: Request) {
     const verifyDto = await validate(EmailVerifyDto, req.body);
     const { tokens, user } = await this.authService.verifyEmail(verifyDto);
-    // set token in cookies
-    req.res
-      .cookie('refresh', tokens.refresh, {
-        httpOnly: this.isDev,
-        maxAge: this.authService.refresh.exp,
-      })
-      .cookie('access', tokens.access, {
-        httpOnly: this.isDev,
-        maxAge: this.authService.access.exp,
-      });
     // return response with user and tokens
     return ApiResponse.success({ user, tokens }, 'User verified successfully');
   }
@@ -81,29 +65,25 @@ export class AuthController {
   }
 
   @Patch('refresh-token')
-  async refreshToken(req: Request, res: Response) {
-    // token get from cookie
-    const token = req.body?.token || req.cookies?.refresh;
+  async refreshToken(req: Request) {
+    // token get
+    const token = req.body?.token;
     if (isEmpty(token)) throw new BadRequest('Token field is required');
-    const { access } = await this.authService.tokenRefresh(token);
-    // set token in cookies
-    res.cookie('access', access, {
-      maxAge: this.authService.access.exp,
-      httpOnly: this.isDev,
-    });
+    const accessToken = await this.authService.tokenRefresh(token);
     // return response with tokens
-    return ApiResponse.success({ access }, 'Tokens refreshed successfully');
+    return ApiResponse.success(
+      { accessToken },
+      'Tokens refreshed successfully',
+    );
   }
 
   @Delete('logout')
   @Middleware(auth.jwt)
-  async logout(req: Request, res: Response) {
-    // token get from cookie
-    const token = req.body?.token || req.cookies?.refresh;
+  async logout(req: Request) {
+    // token get
+    const token = req.body?.token;
     if (isEmpty(token)) throw new BadRequest('Token field is required');
     await this.authService.refresh.blacklisted(token);
-    // clear cookies
-    res.clearCookie('refresh').clearCookie('access');
     // return response
     return ApiResponse.success(null, 'User logged out successfully');
   }

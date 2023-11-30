@@ -82,16 +82,15 @@ export class AuthService {
   }
 
   async getToken(user: string) {
-    const [refresh, access] = await Promise.all([
+    const [refreshToken, accessToken] = await Promise.all([
       this.refresh.create(user),
       this.access.create(user),
     ]);
-    return { refresh, access };
+    return { refreshToken, accessToken };
   }
 
   async tokenRefresh(token: string) {
     const { sub } = await this.refresh.verify(token);
-    const access = await this.access.create(sub.toString());
-    return { access };
+    return await this.access.create(sub.toString());
   }
 }

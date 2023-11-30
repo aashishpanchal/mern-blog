@@ -9,3 +9,30 @@ html {
   line-height: 1.5;
   font-weight: 400;
 }
+
+:root {
+  --background: theme("colors.white");
+  --foreground: theme("colors.black");
+  --primary: theme("colors.blue.500");
+  --secondary: #2c2c25;
+  --success: theme("colors.green.500");
+  --warning: theme("colors.yellow.500");
+  --danger: theme("colors.rose.500");
+  --input: theme("colors.stone.50");
+  --ring: theme("colors.blue.500");
+  --radius: 0.5rem;
+}
+
+@layer components {
+  .hide {
+    @apply duration-100 opacity-0 pointer-events-none;
+  }
+
+  .show {
+    @apply opacity-100 pointer-events-auto;
+  }
+
+  .h-cover {
+    @apply min-h-[calc(100vh-80px)];
+  }
+}

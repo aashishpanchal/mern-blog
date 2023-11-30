@@ -1,13 +1,14 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+import type { UserState } from "api-states";
 
 type InitialType = {
   auth: boolean;
-  user: States.UserState | null;
+  user?: UserState;
 };
 
 const initialState: InitialType = {
   auth: false,
-  user: null,
+  user: undefined,
 };
 
 const authSlice = createSlice({
@@ -21,12 +22,12 @@ const authSlice = createSlice({
         state.user = payload;
       } else {
         state.auth = false;
-        state.user = null;
+        state.user = undefined;
       }
     },
     removeAuth(state) {
       state.auth = false;
-      state.user = null;
+      state.user = undefined;
     },
   },
 });

@@ -6,12 +6,7 @@ import { Unauthorized, Forbidden, NotFound } from 'http-errors';
 export const JwtStrategy = new Strategy(
   {
     secretOrKey: config.getOrThrow<string>('jwt.secret'),
-    jwtFromRequest: (req) => {
-      let token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
-      // check token is empty and may token inside cookie
-      if (!token) token = req.cookies?.access;
-      return token;
-    },
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
   },
   async (payload, done) => {
     try {
